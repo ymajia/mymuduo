@@ -70,17 +70,30 @@ public:
         readerIndex_ = writerIndex_ = kCheapPrepend;
     }
 
+    void retrieveUntil(const char *end)
+    {
+        retrieve(end - peek());
+    }
+
     // 把onMessage函数上报的Buffer数据，转成string类型并返回
+    // 读取所有可读字节
     std::string retrieveAllAsString()
     {
         return retrieveAsString(readableBytes());   // 应用可读取数据的长度
     }
 
+    // 读取指定长度的数据
     std::string retrieveAsString(size_t len)
     {
         std::string result(peek(), len);
         retrieve(len);  // 复位
         return result;
+    }
+
+    // 读取到指定位置的数据
+    std::string retrieveUntilAsString(const char *end)
+    {
+        return retrieveAsString(end - peek());
     }
 
     // 若可写空间不足则需扩容
@@ -98,6 +111,24 @@ public:
         ensureWriteableBytes(len);
         std::copy(data, data + len, beginWrite());
         writerIndex_ += len;
+    }
+
+    void append(const std::string &data)
+    {
+        append(data.c_str(), data.size());
+    }
+
+    // 查找"\r\n"，默认从可读缓冲区起始地址开始，也可以自己指定
+    const char *findCRLF() const
+    {
+        const char *crlf = std::search(peek(), beginWrite(), CRLF, CRLF + 2);
+        return crlf == beginWrite() ? nullptr : crlf;
+    }
+
+    const char *findCRLF(const char *start) const
+    {
+        const char *crlf = std::search(start, beginWrite(), CRLF, CRLF + 2);
+        return crlf == beginWrite() ? nullptr : crlf;
     }
 
     // read data directly into buffer
@@ -144,6 +175,8 @@ private:
     }
 
 private:
+    static const char CRLF[];
+
     std::vector<char> buffer_;
     size_t readerIndex_;
     size_t writerIndex_;
