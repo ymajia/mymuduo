@@ -82,6 +82,7 @@ void TcpConnection::sendInLoop(const void *data, size_t len)
     }
 
     // 表示channel_第一次开始写数据，而且缓冲区没有待发送数据
+    // isWriting表示的是可写
     if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
     {
         nwrote = ::write(channel_->fd(), data, len);

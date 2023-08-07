@@ -68,8 +68,10 @@ private:
     const int fd_;      // fd, Poller监听的对象
     int events_;        // 注册fd感兴趣的事件
     int revents_;       // poller返回具体发生的事件
-    int index_;
+    int index_;         // 为Poller所用的状态表示，有三种值（New,Added,Delete）
+                        // index这个名字或许不合适？？
 
+    // 作用是什么？？
     std::weak_ptr<void> tie_;
     bool tied_;
 

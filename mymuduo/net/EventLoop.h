@@ -40,7 +40,7 @@ public:
     void removeChannel(Channel *channel);
     bool hasChannel(Channel *channel);
 
-    // 判断EventLoop对象是否在自己的线程里面
+    // 判断调用该函数的线程和loop循环所在线程是否一致
     bool isInLoopThread() const { return threadId_ == CurrentThread::tid(); }
 
 private:
@@ -61,6 +61,7 @@ private:
 
     // 当mainloop获取一个新用户的channel，
     // 通过轮询算法选择一个subloop，通过该成员唤醒subloop处理
+    // wakeupFd是一个eventfd
     int wakeupFd_;
     std::unique_ptr<Channel> wakeupChannel_;
 

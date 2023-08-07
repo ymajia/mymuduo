@@ -13,7 +13,9 @@ const int kAdded = 1;
 const int kDelete = 2;
 
 EPollPoller::EPollPoller(EventLoop *loop)
-        : Poller(loop), epollfd_(::epoll_create1(EPOLL_CLOEXEC)), events_(kInitEventListSize)
+        : Poller(loop)
+        , epollfd_(::epoll_create1(EPOLL_CLOEXEC))
+        , events_(kInitEventListSize)
 {
     if (epollfd_ < 0)
     {
@@ -26,6 +28,7 @@ EPollPoller::~EPollPoller()
     ::close(epollfd_);
 }
 
+// 封装了epoll_wait
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList *activeChannels)
 {
     // 实际应该用LOG_DEBUG
@@ -62,6 +65,7 @@ Timestamp EPollPoller::poll(int timeoutMs, ChannelList *activeChannels)
     return now;
 }
 
+// 封装了epoll_ctl和一些逻辑判断
 void EPollPoller::updateChannel(Channel *channel)
 {
     const int index = channel->index();
@@ -73,8 +77,9 @@ void EPollPoller::updateChannel(Channel *channel)
 
     if (index == kNew || index == kDelete)
     {
-        if (index == kNew)
+        if (index == kNew)  // 表示不在map里面
         {
+            // channel初始化时index就是kNew
             int fd = channel->fd();
             channels_[fd] = channel;
         }
@@ -87,6 +92,7 @@ void EPollPoller::updateChannel(Channel *channel)
         if (channel->isNoneEvent())
         {
             update(EPOLL_CTL_DEL, channel);
+            // 标记为删除，但不在map中移除
             channel->set_index(kDelete);
         }
         else
@@ -124,6 +130,7 @@ void EPollPoller::fillActiveChannels(int numEvents, ChannelList *activeChannels)
     }
 }
 
+// 封装了epoll_ctl
 void EPollPoller::update(int operation, Channel *channel)
 {
     epoll_event event;

@@ -14,6 +14,7 @@
 #include "Buffer.h"
 
 // 对外服务器编程使用的类
+// 主要对mainloop的一些操作进行封装，mainloop是监听新连接事件
 class TcpServer: noncopyable
 {
 public:

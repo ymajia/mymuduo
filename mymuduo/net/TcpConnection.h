@@ -18,6 +18,9 @@ class Channel;
 class EventLoop;
 class Socket;
 
+// 对channel的一些操作进行封装，如读写channel，Buffer也用在这里
+// 为channel设置回调函数，读、写、关闭、错误回调
+// 自身也提供了一组可供外部设置的回调函数
 class TcpConnection: noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
 public:
@@ -56,6 +59,7 @@ public:
     void connectDestroyed();
 
 private:
+    // 以下四个函数是给channel设置的回调函数
     void handleRead(Timestamp receiveTime);
     void handleWrite();
     void handleClose();

@@ -3,6 +3,7 @@
 
 class InetAddress;
 
+// 封装socket
 class Socket: noncopyable
 {
 public:

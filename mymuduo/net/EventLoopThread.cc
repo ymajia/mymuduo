@@ -39,6 +39,7 @@ EventLoop *EventLoopThread::startLoop()
 }
 
 // startLoop()函数在单独的新线程里面运行
+// 创建一个eventloop并调用loop()函数循环
 void EventLoopThread::threadFunc()
 {
     EventLoop loop; // 创建一个独立的eventLoop，和上面的线程一一对应，one loop per thread

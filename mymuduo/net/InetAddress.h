@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <string>
 
+// 封装了sockaddr_in
 class InetAddress
 {
 public:

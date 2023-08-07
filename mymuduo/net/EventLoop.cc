@@ -10,7 +10,7 @@
 // 防止一个线程创建多个EventLoop thread_local
 __thread EventLoop *t_loopInThisThread = nullptr;
 
-// 定义默认的Poller IO复用接口的超时事件
+// 定义默认的Poller IO复用接口的超时时间
 const int kPollTimeMs = 10000;
 
 // 创建wakeupfd，用来notify唤醒subReactor处理新来的channel
@@ -61,6 +61,10 @@ EventLoop::~EventLoop()
 }
 
 // 开启事件循环
+// 就是反复调用封装了的epoll_wait，对发生事件的channel调用事先设置好的回调函数
+// 最后若设置了pendingFunctors则调用，这组回调由mainloop为subloop设置
+// 所以wakeupfd的作用其实就是为了执行这组回调，因为若没有wakeupfd
+// 则需要等待事件发生才可以执行到这组回调
 void EventLoop::loop()
 {
     looping_ = true;
@@ -77,6 +81,7 @@ void EventLoop::loop()
         for (Channel *channel: activeChannels_)
         {
             // Poller监听哪些channel发生了事件，上报给EventLoop，通知channel处理相应的事件
+            // channel会判断发生事件的类型（其实就是注册事件的类型，然后调用相应的回调函数）
             channel->handleEvent(pollReturnTime_);
         }
         // 执行当前EventLoop事件循环需要处理的回调操作
@@ -104,12 +109,14 @@ void EventLoop::quit()
 
 void EventLoop::runInLoop(Functor cb)
 {
-    if (isInLoopThread())   // 在当前loop线程中，执行cb
+    if (isInLoopThread())
     {
+        // 调用该函数runInLoop的线程和当前loop函数所在线程一样，则直接执行
         cb();
     }
-    else    // 在非当前loop线程中执行cb，就需要唤醒loop所在线程，执行cb
+    else
     {
+        // 调用该函数runInLoop的线程和当前loop函数所在线程不一样，加入回调队列
         queueInLoop(cb);
     }
 }
@@ -129,6 +136,8 @@ void EventLoop::queueInLoop(Functor cb)
     }
 }
 
+// 这里的读处理函数只处理wakeupfd的读事件，
+// 所以叫handleWakeup也许更合适？？
 void EventLoop::handleRead()
 {
     uint64_t one = 1;

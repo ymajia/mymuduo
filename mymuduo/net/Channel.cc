@@ -4,12 +4,19 @@
 #include "EventLoop.h"
 #include "../base/Logger.h"
 
+// 这里的事件都是LT模式，ET模式需要 | EPOLLET
 const int Channel::kNoneEvent = 0;
 const int Channel::kReadEvent = EPOLLIN | EPOLLPRI;
 const int Channel::kWriteEvent = EPOLLOUT;
 
 Channel::Channel(EventLoop *loop, int fd)
-        : loop_(loop), fd_(fd), events_(0), revents_(0), index_(-1), tied_(false) {}
+        : loop_(loop)
+        , fd_(fd)
+        , events_(0)
+        , revents_(0)
+        , index_(-1)
+        , tied_(false)
+{}
 
 Channel::~Channel() {}
 
